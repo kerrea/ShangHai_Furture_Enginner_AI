@@ -35,11 +35,9 @@ void initMotorController() { // init pins
   isReverse false Forward
   isReverse true Backward
 */
-int runMotor(int Port, int Speed, bool isReverse) {
-
+void runMotor(int Port, int Speed, bool isReverse) {
   //  define the pin for control the motor
-  int SpeedPin, DirectionPin;
-  int result;
+  int SpeedPin = 0, DirectionPin = 0;
   // init PINS
   switch (Port) {
     case 1:
@@ -61,41 +59,29 @@ int runMotor(int Port, int Speed, bool isReverse) {
     default:
       if (Serial.available() > 0) {
         Serial.print("No such a port: Port " + Port);
-        return 1;
+        return;
       }
       break;
   }
   // Limit the speed
-  if (Speed < 0 && Speed >= -100) {
+  if (Speed < 0) {
     Speed = -Speed;
     isReverse = !isReverse;
-    result = 2;
-  } else if (Speed < -100) {
+  }  else if (Speed > 100) {
     // exception
     Speed = 100;
-    isReverse = !isReverse;
-    result = 3;
-  } else if (Speed > 100) {
-    // exception
-    Speed = 100;
-    result = 4;
   }
-  // map speed for write;
-  int Speed_Local = map(Speed, 0, 100, 0, 255);
+  analogWrite(SpeedPin, map(Speed, 0, 100, 0, 255));
   // write Direction Data
   if (Port == 1 || Port == 3) {
     digitalWrite(DirectionPin, isReverse);
-    result = 0;
   } else if (Port == 2 || Port == 4) {
     digitalWrite(DirectionPin, !isReverse);
-    result = 0;
   } else {
     // exception. but upper code have treated this.
     if (Serial.available() > 0) {
       Serial.print("No such a port: Port " + Port);
-      return 1;
+      return;
     }
   }
-  analogWrite(SpeedPin, Speed_Local);
-  return result;
 }
